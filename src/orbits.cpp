@@ -32,6 +32,21 @@ double isco_radius_analytic(double a, Direction dir) {
     return dir == Direction::Prograde ? 3.0 + z2 - root : 3.0 + z2 + root;
 }
 
+bool make_plunge_launch(double r0, double a, Direction dir, double l_fraction, Launch& out) {
+    if (!circular_orbit_exists(r0, a, dir)) return false;
+    if (l_fraction < 0.0 || l_fraction >= 1.0) return false;
+
+    Constants c = circular_orbit(r0, a, dir);
+    c.L *= (1.0 - l_fraction);
+
+    const double r_dot_sq = radial_potential(r0, c);
+    if (r_dot_sq < 0.0) return false;
+
+    out.c = c;
+    out.s0 = State{0.0, r0, 0.0, -std::sqrt(r_dot_sq)};
+    return true;
+}
+
 bool is_orbit_stable(double r, double a, Direction dir, double tau_max, double dtau) {
     if (!circular_orbit_exists(r, a, dir)) return false;
 
